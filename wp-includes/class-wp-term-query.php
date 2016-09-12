@@ -219,7 +219,7 @@ class WP_Term_Query {
 			$query = $this->query_vars;
 		}
 
-		$taxonomies = isset( $query['taxonomy'] ) ? $query['taxonomy'] : null;
+		$taxonomies = isset( $query['taxonomy'] ) ? (array) $query['taxonomy'] : null;
 
 		/**
 		 * Filters the terms query default arguments.
@@ -516,7 +516,10 @@ class WP_Term_Query {
 
 		// Don't limit the query results when we have to descend the family tree.
 		if ( $number && ! $hierarchical && ! $child_of && '' === $parent ) {
-			if ( $offset ) {
+		    // Disable LIMIT when no ORDER BY
+		    if ( ! $orderby ) {
+			    $limits = '';
+		    } elseif ( ! empty( $number ) ) {
 				$limits = 'OFFSET ' . $offset . ' ROWS FETCH NEXT ' . $number . ' ROWS ONLY';
 			} else {
 				$limits = 'OFFSET 0 ROWS FETCH NEXT ' . $number . ' ROWS ONLY';
@@ -641,7 +644,8 @@ class WP_Term_Query {
 				$cache = array_map( 'get_term', $cache );
 			}
 
-			return $cache;
+			$this->terms = $cache;
+			return $this->terms;
 		}
 
 		if ( 'count' == $_fields ) {
